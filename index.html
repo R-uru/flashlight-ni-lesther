@@ -1,0 +1,32 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleButton = document.getElementById('toggleButton');
+    let stream = null;
+    let isTorchOn = false;
+
+    toggleButton.addEventListener('click', async () => {
+        if (!stream) {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+
+                if (capabilities.torch) {
+                    const constraints = { advanced: [{ torch: true }] };
+                    await track.applyConstraints(constraints);
+                    isTorchOn = true;
+                    toggleButton.textContent = 'Turn Off';
+                } else {
+                    alert('Torch capability is not available on this device.');
+                }
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+            }
+        } else {
+            const track = stream.getVideoTracks()[0];
+            const constraints = { advanced: [{ torch: !isTorchOn }] };
+            await track.applyConstraints(constraints);
+            isTorchOn = !isTorchOn;
+            toggleButton.textContent = isTorchOn ? 'Turn Off' : 'Turn On';
+        }
+    });
+});
